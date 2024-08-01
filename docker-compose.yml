@@ -1,0 +1,19 @@
+version: '2.1'
+
+services:
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack
+    network_mode: bridge
+    ports:
+      - "4566-4599:4566-4599"
+      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
+    environment:
+      - SERVICES=s3 # we only need s3 bucket
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data # we need this to make our volume work
+      - DEFAULT_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=testkey
+      - AWS_SECRET_ACCESS_KEY=testsecret
+    volumes:
+      - "./my_localstack_init/init:/tmp/localstack" # we mount our local my_localstack_init folder into tmp/localstack folder in container
