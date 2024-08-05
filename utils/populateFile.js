@@ -2,7 +2,7 @@ const { Document, Packer, Paragraph, TextRun } = require('docx');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 const path = require('path');
-const { format } = require('date-fns');
+const { addMonths, format } = require('date-fns');
 const { localFileUpload } = require('../utils/fileUtils');
 
 async function populateFile(file, docFileType, image, rId) {
@@ -120,6 +120,59 @@ function extractNameFromEmail(email) {
   return name;
 }
 
+function extractValidPeriod(docPath) {
+  if (!docPath) {
+    throw new Error('Document path is not provided');
+}
+let docBuffer;
+    if (Buffer.isBuffer(docPath)) {
+        docBuffer = docPath; // If docPath is a buffer
+    } else {
+      try {
+        docBuffer = fs.readFileSync(docPath); // If docPath is a file path
+    } catch (err) {
+        throw new Error('Failed to read the document file: ' + err.message);
+    }
+    }
+  //const docBuffer = fs.readFileSync(docPath);
+  const pattern = /\b(\d+)\s+months\b/i;
+  const content = docBuffer.toString(); // Read content as string
+
+    console.log('Document Content:', content); // Log content for debugging
+
+    const match = pattern.exec(content);
+    if (match) {
+        const period = parseInt(match[1], 10);
+        if (isNaN(period) || period <= 0) {
+            throw new Error('Extracted validity period is not a valid number');
+        }
+        return period;
+    }
+
+    throw new Error('Validity period not found in the document');
+//   const paragraphs = docBuffer.toString().split('\n');
+
+//   for (const paragraph of paragraphs) {
+//       const match = pattern.exec(paragraph);
+//       if (match) {
+//         return parseInt(match[1], 10); 
+//       }
+//   }
+//   return null;
+ }
+
+function calcExpiryDate(validPeriod) {
+  if (isNaN(validPeriod) || validPeriod <= 0) {
+    throw new Error('Invalid validity period');
+}
+
+const now = new Date();
+const expiryDate = addMonths(now, validPeriod);
+return format(expiryDate, 'yyyy-MM-dd');
+}
+
 module.exports = {
   populateFile,
+  extractValidPeriod,
+  calcExpiryDate,
 };

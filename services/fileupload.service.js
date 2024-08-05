@@ -1,6 +1,7 @@
 const { localFileUpload, generateLocalFileUrl } = require('../utils/fileUtils');
 const { populateFile } = require('../utils/populateFile');
 const dynamoose = require('dynamoose');
+//const validFileTypes = ['no_liability', 'institute_isa', 'digital_partner']; // Valid types
 
 exports.handleFileUpload = async ({ file, image, docFileType, reviewerName, rId }) => {
   let docName;
@@ -10,7 +11,19 @@ exports.handleFileUpload = async ({ file, image, docFileType, reviewerName, rId 
     if (!file || !file.buffer) throw new Error('File buffer is missing');
     if (!image || !image.buffer) throw new Error('Image buffer is missing');
 
+    // Validate docFileType
+    // if (!validFileTypes.includes(docFileType)) {
+    //   throw new Error('Invalid document file type');
+    // }
+    console.log('Received file type:', docFileType);
+    console.log('Received reviewer name:', reviewerName);
+    console.log('Recieved Id', rId);
+    console.log('Received file:', file);
+    console.log('Received image:', image);
+
+
     // Determine document name based on type
+    console.log("docfiletype is ",docFileType);
     switch (docFileType) {
       case 'no_liability':
         docName = 'No liability agreement';

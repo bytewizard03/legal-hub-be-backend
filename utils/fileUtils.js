@@ -8,6 +8,14 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
+/**
+ * Uploads a file buffer to local storage.
+ * @param {Buffer} fileBuffer - The buffer of the file to save.
+ * @param {string} folder - The folder to store the file in.
+ * @param {string} fileName - The name to save the file as.
+ * @returns {Promise<Object>} - Resolves with the file path and URL.
+ */
+
 function localFileUpload(fileBuffer, folder, fileName) {
   return new Promise((resolve, reject) => {
     console.log('File Buffer:', fileBuffer);  // Log to verify file buffer
@@ -40,8 +48,17 @@ function localFileUpload(fileBuffer, folder, fileName) {
   });
 }
 
+/**
+ * Generates a URL for a local file.
+ * @param {string} filePath - The file path relative to the root directory.
+ * @returns {string} - The URL to access the file.
+ */
+
 function generateLocalFileUrl(filePath) {
-  return `http://localhost:8040${filePath}`;
+  //return `http://localhost:8040${filePath}`;
+  // Ensure the filePath is correctly formatted
+  const relativePath = path.relative(uploadDir, filePath);
+  return `http://localhost:8040/uploads/${relativePath.replace(/\\/g, '/')}`;
 }
 
 module.exports = { localFileUpload, generateLocalFileUrl };

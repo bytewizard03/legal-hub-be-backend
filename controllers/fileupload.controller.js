@@ -4,7 +4,7 @@ exports.uploadFile = async (req, res) => {
     try {
       console.log('req.body:', req.body);
       console.log('req.files:', req.files);
-      const { docFileType, reviewerName } = req.body;
+      const { docFileType, reviewerName } = req.body; 
       const rId = Math.floor(Math.random() * 1000) + 1;
   
       // check if files are uploaded correctly
