@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { localFileUpload, generateLocalFileUrl } = require('../utils/fileUtils');
-const { getBase64, sendEmailDoc, generateIds } = require('../utils/docuSign');
+const { convertToBase64, sendEmailDoc, generateIds } = require('../utils/docuSign');
 const { calcExpiryDate, extractValidPeriod } = require('../utils/populateFile');
 const dynamoose = require('dynamoose');
 
@@ -41,10 +41,12 @@ exports.handleSendEnvelop = async ({ fileData, name, email, subject, id, isFile 
     // Generate envelope ID and other details
     const filterVal = parseInt(id, 10);
     const envelopeId = generateIds();
-    const base64File = await getBase64(filePath, isFile);
+    const base64File = await convertToBase64(filePath, isFile);
     const response = await sendEmailDoc(base64File, envelopeId, email, subject, name, generateIds(), process.env.ACCOUNT_ID);
+    console.log("response is" ,response);
 
     const data = {
+     // id: filterVal,
       finalLink: fileUrl,
       email,
       subject,
@@ -55,8 +57,12 @@ exports.handleSendEnvelop = async ({ fileData, name, email, subject, id, isFile 
     };
 
     // Update DynamoDB with envelope data
-    const Agreement = dynamoose.model('Agreement', {
-      id: Number,
+    console.log("envelope data parsed in dynamodb...........")
+    const Agreement = dynamoose.model('Agreement', new dynamoose.Schema({
+      id: {
+        type: Number,
+        hashKey: true, // This is the primary key
+      },
       finalLink: String,
       email: String,
       subject: String,
@@ -64,9 +70,13 @@ exports.handleSendEnvelop = async ({ fileData, name, email, subject, id, isFile 
       expiryDate: String,
       envelopeId: String,
       rId: Number,
-    });
+    }));
 
-    await Agreement.create(data);
+    console.log("Data to be inserted:", data);
+    if (!data.finalLink || !data.email || !data.subject || !data.validity || !data.expiryDate || !data.envelopeId || !data.rId) {
+      throw new Error('One or more required fields are missing or invalid');
+  }
+  await Agreement.update({ id: filterVal }, data, { returnValues: 'UPDATED_NEW' });
 
     // If file is temporary, delete it after processing
     if (!isFile) {

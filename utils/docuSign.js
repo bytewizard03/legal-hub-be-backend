@@ -3,63 +3,70 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const base64 = require('base-64');
-//const random = require('random');
+const AWS = require('aws-sdk');
+const docusign = require('docusign-esign')
 
 dotenv.config();
 
-const base_url = process.env.BASE_URL;
-const iss = process.env.ISS;
-const sub = process.env.SUB;
+const base_url = process.env.BASE_PATH;
+// const iss = process.env.ISS;
+// const sub = process.env.SUB;
+
+// Initialize local DynamoDB configuration
+const dynamoDb = new AWS.DynamoDB.DocumentClient({
+    region: "ap-south-1",
+    endpoint: 'http://localhost:8000' // Local DynamoDB endpoint
+});
 
 // Your private key (replace this with your actual private key)
 const private_key = `
 -----BEGIN RSA PRIVATE KEY-----
-MIIEoQIBAAKCAQEAwgcnT5FtrxXqQaMcsu/giH3QproIN+SXPDjy9B4w/9npUcym
-3WrHtKqoWYRTDcIjo+7re2N+aXaBYi/98D7xBTDpsZ24UuOAak5KthXQq/FyRVfm
-/AXT/RWgwd4sZSpOMA+3A01ndCL+eKz+lvIZUqFgqGqS9cwmCETyJDfr3PwiuuiA
-H2jm6ksPJUYwcAmUQ3T9PnrhYOiiZa7ymeiW7o7KOG5t0M8fntV69NX8LE704KSm
-QGgnNm08L0LE7yYN6wdmK7XgIrbTbsroiYolFiNRX1oFoeGVmGCYVPxedKY+bLq6
-J6KxxmfQUpROtJMUmRKGfgL9JHs9cH3wd9JdkwIDAQABAoH/cO2485axQDaBIbLO
-AVecV9TinCeqoN1rKKH8xhjMbB1orzNt63E6yuyJD5D0xg04sTFd3XMLIFbY90z3
-f90iauMNIVOq9JN1KmpnEZOg4HKnD7UZu5WozKTJ7Axjyn3VBCQhYMqsa+vyMEp/
-41sFYhKLL3rYDjfD6ww14t6paPRTIDXwY8PmtjVSpRgTp9ImYWTsgDMde5opZB5A
-sa8ACVJ69bWbHR5FJMRRCGPFMYlzhjt1cYbx8vJERLxyUkfLqdepCqwHkC7jiXhq
-SQjW1WqwG7fTU6ga+ixwAF6cs5JiLbigxdjLHgLOTBislYKP8SocwoStTa1jxO+g
-X/WpAoGBAO/XLhGhzROzt6ggLiuPIV1k2+qKUsbnJ22tR5GTc1ceUEJhkM5nu61C
-OFtPquwJ3swdUgsrBV6cpfuUdCxYjzYyTwv21YjQiMVMqD8r/9dVHJIs7MapdGy6
-VrHVp0R9LDO4jBfC/viDs7wI+eCkGmWMMTPP4iliL9CGoHabXnydAoGBAM8ZyciE
-/UISTp5AgwVPCuk1SYRHs+5ZmJTyVs9Oun/db3fkSORwbCEpAbO/cdgnEI4G34VO
-G6xK7mYIww8KLB5CyrIHol3KFTmRMjTz9lTaW8G7LcoPptVO9JICPbYxk6rq+2xI
-VW9xbcS5cvZYUOpoaPYIGuwedufZ16RHr/PvAoGAMvAxoZ8KrjeKNxP2mlvAy1Qj
-fPG52PK5JgsaWynE4mjWxPJxzdSsQIUC8Sm/dHg4MIO9rA+MCWcdvYvvDIgWin0u
-2qym93LKyZSZWyleIf66nbUa6KqOxpTg2s40w1AOdkGox1crzd4y6ynA4FwaGx0m
-SgnJz95Bp3kgVXB0JeUCgYBcOFCJMOcRh9NoVrPBJmxmYmslM0SlK1JtaOhNEfKs
-Q2+ChK4Mwx7zOS5f2y0XonWVuOvJkXlzJD66QsaRKOdyZi2aTxn3B6ih5MzllYko
-Sb+4KeB+7K9OpwTzC3ptafAmmNJyaldY87p8clQF7FfDudCbVgqfAAXUwkVrCt0I
-EwKBgQC/Q/6nzt7rlngyE9dCNpLrxx/YLB2Ee7flnnw1SHKpYRpzAEvuBqqzbK4b
-t0otNLsUXYSjYDwl+H9kBIE0yYZUBTkEfGcufjb8yOacVvKIubeK5QOgXmABa3gd
-iHfNlQ3s9nJHVGyb3Ing7N3ig8onFH6q5F97Ny4lsx134JOMBg==
+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
 -----END RSA PRIVATE KEY-----
 `;
 
 // Your public key (replace this with your actual public key)
 const public_key = `
 -----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwgcnT5FtrxXqQaMcsu/g
-iH3QproIN+SXPDjy9B4w/9npUcym3WrHtKqoWYRTDcIjo+7re2N+aXaBYi/98D7x
-BTDpsZ24UuOAak5KthXQq/FyRVfm/AXT/RWgwd4sZSpOMA+3A01ndCL+eKz+lvIZ
-UqFgqGqS9cwmCETyJDfr3PwiuuiAH2jm6ksPJUYwcAmUQ3T9PnrhYOiiZa7ymeiW
-7o7KOG5t0M8fntV69NX8LE704KSmQGgnNm08L0LE7yYN6wdmK7XgIrbTbsroiYol
-FiNRX1oFoeGVmGCYVPxedKY+bLq6J6KxxmfQUpROtJMUmRKGfgL9JHs9cH3wd9Jd
-kwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiPPK+/VYQ+PTmNqviEKc
+2EYY5sWhK3pTSlXWCtsdL05BlOCVfxwTuo/Yvudru34FS6dF8x+zUP5sfo1GPD7E
+2zwpHfsgDDJd+xOe9XSPI3iSigKzfoSTqmOOTMAvdjGPXmrIPRTrCVdrPmjNqUcw
+VkLTeTV2EW29hGeSz8dI4s2LlNB8gw4RB3neoqUx5HVY5gUq2zY5jYjLmPzB8H+o
+aWYuG3DSyWfzVkmXWAanb0pzaAHFi966UJCP4EPIia0jJkpeKARi4iVAFLcpNEB5
+/OMEuOEaBiF0G270fWTZquqXlPor7S+wgEeVR6i1iskNt800IlX2TfbU2Z87/WmT
+MQIDAQAB
 -----END PUBLIC KEY-----
 `;
 
+
 // Payload for the JWT
 const payload = {
-    iss: iss,
-    sub: sub,
+    iss: "a70056eb-ea16-49b1-887e-2afec9cf72f5",  // your integration key from DocuSign
+    sub: "fcec2b47-17b6-4708-be29-63d6a8696218", // user id or subject
     aud: "account-d.docusign.com",
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour expiration
@@ -69,20 +76,24 @@ const payload = {
 // Generate the JWT token
 const token = jwt.sign(payload, private_key, { algorithm: 'RS256' });
 
-const convertToBase64 = (filePath, isFile) => {
-    filePath = filePath.replace(' ', '');
-    if (isFile) {
-        const binaryData = filePath.read();
-        const base64Data = base64.encode(binaryData);
+//console.log('Generated JWT Token:', token); // Log the token for debugging
+
+const convertToBase64 = (filePath) => {
+    try {
+        // Read the file content
+        const fileContent = fs.readFileSync(filePath);
+
+        // Convert the file content to a base64 string
+        const base64Data = Buffer.from(fileContent).toString('base64');
+        
         return base64Data;
-    } else {
-        const binaryData = fs.readFileSync(filePath);
-        const base64Data = base64.encode(binaryData);
-        return base64Data;
+    } catch (error) {
+        console.error('Error reading or converting file to base64:', error);
+        throw error; // Re-throw or handle the error as needed
     }
 };
 
-const checkEnvelopeStatus = async (envelopeId, accountId = '0ea5464e-3084-4fb9-a399-9421c04b2007') => {
+const checkEnvelopeStatus = async (envelopeId, accountId = process.env.accountId) => {
     const token = await generateToken();
     const url = `${base_url}/accounts/${accountId}/envelopes/${envelopeId}`;
 
@@ -95,9 +106,9 @@ const checkEnvelopeStatus = async (envelopeId, accountId = '0ea5464e-3084-4fb9-a
     return response.data;
 };
 
-// const generateIds = () => {
-//     return random.int(10000, 999999);
-// };
+const generateIds = () => {
+    return Math.floor(Math.random() * 90000) + 10000; // Generate a random 5-digit number
+};
 
 const generateToken = async () => {
     const url = 'https://account-d.docusign.com/oauth/token';
@@ -105,21 +116,28 @@ const generateToken = async () => {
     const payload = `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${token}`;
     const headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Bearer YOUR_LONG_LIVED_ACCESS_TOKEN` // Replace with your long-lived access token
+        'Authorization': `Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhNzAwNTZlYi1lYTE2LTQ5YjEtODg3ZS0yYWZlYzljZjcyZjUiLCJzdWIiOiJmY2VjMmI0Ny0xN2I2LTQ3MDgtYmUyOS02M2Q2YTg2OTYyMTgiLCJhdWQiOiJhY2NvdW50LWQuZG9jdXNpZ24uY29tIiwiaWF0IjoxNzIyOTM4MDgxLCJleHAiOjE3MjI5NDE2ODEsInNjb3BlIjoic2lnbmF0dXJlIGltcGVyc29uYXRpb24ifQ.E9-abxcumL2MHpTheppTADndlvQXMvu8omP8H6gTBxleP6YF-hy9ripd6f22GYHSepzC7T5KWhfbMXZMkDJ40FUjCNXXQxQSi0Dv4kQD4HOuPKJzjx7l7kznIbM5K0r7T9YQrJJayvJM0AXyOZbAPuz-EfOKjfj9xYZnEnE_uFKScdNIR6hlAdRLx28kpmB-mG5KKWQdGFNYdyZsp4kWK3dTZBDU29ELTZlDcwhoVpqZs715pflPrqrnvZiGL27ysDuodqXd4LfSedWXYflOExGXlz1nixq8dKTKJsUXt94_OBacs98-nk8jDG6pczt_oIpyfRgOC_Bi-K2It_Xx2w `, // Replace with your long-lived access token
+        // 'Cookie': '__RequestVerificationToken=a70056eb-ea16-49b1-887e-2afec9cf72f5'
     };
 
     const response = await axios.post(url, payload, { headers });
     return response.data.access_token;
 };
 
-const sendEmailDoc = async (base64Document, documentId, email, subject, name, recipientId, accountId) => {
+// Initialize DocuSign API client
+const apiClient = new docusign.ApiClient();
+apiClient.setBasePath(base_url);
+apiClient.addDefaultHeader('Authorization', `Bearer ${generateToken()}`);
+
+const sendEmailDoc = async (base64Document, document_id, email, subject, name, recipientId, accountId = process.env.accountId) => {
+    try{
     const token = await generateToken();
     const url = `${base_url}/accounts/${accountId}/envelopes`;
     const payload = {
         "documents": [
             {
                 "documentBase64": base64Document,
-                "documentId": documentId,
+                "documentId": document_id,
                 "fileExtension": "docx",
                 "name": "document"
             }
@@ -141,12 +159,29 @@ const sendEmailDoc = async (base64Document, documentId, email, subject, name, re
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
     };
+    // console.log("base64document is :" , base64Document);
+    // console.log("document_id is:", documentId);
+    // console.log("Email is:", email);
+    // console.log("name is;", name);
+    // console.log("recipientId is:", recipientId);
+    // console.log("accountid is", accountId);
+    console.log("Request URL:", url);
+    //console.log("Request Payload:", JSON.stringify(payload, null, 2));
+    console.log("Request Headers:", headers);
 
     const response = await axios.post(url, payload, { headers });
     return response.data;
+    } catch (error) {
+        console.error("Error handling send envelope service:", error.message);
+        if (error.response) {
+            console.error("Response data:", error.response.data);
+            console.error("Response status:", error.response.status);
+            console.error("Response headers:", error.response.headers);
+        }
+    }
 };
 
-const envelopeStatusCheck = async (accountId, envelopesId) => {
+const envelopeStatusCheck = async (accountId = process.env.accountId, envelopesId) => {
     const token = await generateToken();
     const url = `${base_url}/accounts/${accountId}/envelopes/${envelopesId}`;
 
@@ -156,4 +191,29 @@ const envelopeStatusCheck = async (accountId, envelopesId) => {
 
     const response = await axios.get(url, { headers });
     return response.data;
+};
+
+// Example of storing data to local DynamoDB
+const storeDocumentMetadata = async (tableName, documentData) => {
+    const params = {
+        TableName: tableName,
+        Item: documentData
+    };
+
+    try {
+        await dynamoDb.put(params).promise();
+        console.log('Document metadata stored successfully.');
+    } catch (error) {
+        console.error('Error storing document metadata:', error);
+        throw error;
+    }
+};
+
+module.exports = {
+    convertToBase64,
+    checkEnvelopeStatus,
+    sendEmailDoc,
+    envelopeStatusCheck,
+    generateIds,
+    storeDocumentMetadata // Export the function if needed elsewhere
 };

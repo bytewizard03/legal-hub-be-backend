@@ -57,11 +57,17 @@ async function populateFile(file, docFileType, image, rId) {
     contact_person_name: sheet.getCell("D19").value,
     contact_person_designation: sheet.getCell("D20").value,
     Name_from_mail_id: extractNameFromEmail(email),
+    //kyc_authorized_signatory: sheet.getCell("23").value,
+    //product_snapshot:
     // Add more fields as needed
   };
+  console.log(data);
 
   // Load the docx file as binary content
-  const content = fs.readFileSync(docPath, "binary");
+  const content = fs.readFileSync(
+    path.resolve(__dirname, docPath),
+    "binary"
+  );
 
   // Unzip the content of the file
   const zip = new PizZip(content);
@@ -73,7 +79,12 @@ async function populateFile(file, docFileType, image, rId) {
   });
 
   // Render the document with the data
-  doc.render(data);
+  try {
+    doc.render(data);
+  } catch (error) {
+    console.error("Error rendering document:", error);
+    throw new Error("Error rendering document with provided data");
+  }
 
   // Get the zip document and generate it as a nodebuffer
   const buf = doc.getZip().generate({
@@ -90,13 +101,23 @@ async function populateFile(file, docFileType, image, rId) {
   fs.writeFileSync(filledDocumentPath, buf);
 
   // Optionally save the image locally if needed
-  const uploadedImage = await localFileUpload(image.buffer, "images", `${rId}_uploaded_image.png`);
+  let image_url = null;
+  if (image && image.buffer) {
+    try {
+      const uploadedImage = await localFileUpload(image.buffer, "images", `${rId}_uploaded_image.png`);
+      image_url = uploadedImage.url;
+    } catch (uploadError) {
+      console.error("Error uploading image:", uploadError);
+      throw new Error("Error uploading image");
+    }
+  }
 
   return {
     filledDocumentPath, // Path to the saved document
     data, // Data used for document processing
     tempFilePath: filledDocumentPath, // Path for temporary file
-    image_url: uploadedImage.url, // URL to the saved image
+    //image_url: uploadedImage.url, // URL to the saved image
+    image_url, // URL to the saved image, or null if no image
   };
 }
 
@@ -131,10 +152,21 @@ function extractValidPeriod(docPath) {
 
   const pattern = /\b(\d+)\s+months\b/i;
   const content = docBuffer.toString(); // Read content as string
+  // Use PizZip to unzip the DOCX content
+  const zip = new PizZip(docBuffer);
 
-  console.log("Document Content:", content); // Log content for debugging
+  // Extract and modify document.xml
+  const docXml = zip.file("word/document.xml")?.asText();
+  //console.log("document content: ",docXml);
+  
+  if (!docXml) {
+    throw new Error("document.xml not found in the DOCX archive");
+  }
 
-  const match = pattern.exec(content);
+ // console.log("Document Content:", content); // Log content for debugging
+
+ // const match = pattern.exec(content);
+ const match  = pattern.exec(docXml);
   if (match) {
     const period = parseInt(match[1], 10);
     if (isNaN(period) || period <= 0) {
