@@ -3,13 +3,13 @@ const generatePresignedLinkService = require('../services/generatePresignedLink.
 exports.generatePresignedLink = async (req, res) => {
     try {
         const fileUrl = req.body.file_url;
+        if (!fileUrl) {
+            return res.status(400).json({ message: 'File URL is required' });
+        }
+
         const result = await generatePresignedLinkService.getPresignedLink(fileUrl);
 
-        if (result) {
-            res.json({ presigned_link: result });
-        } else {
-            res.status(400).json({ message: 'Failed to generate presigned link' });
-        }
+        res.json({ presigned_link: result });
     } catch (error) {
         console.error('Error generating presigned link:', error);
         res.status(500).json({ error: 'Internal server error' });

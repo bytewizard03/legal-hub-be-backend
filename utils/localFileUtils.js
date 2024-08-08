@@ -3,8 +3,12 @@ const fs = require('fs');
 
 const generatePresignedUrl = (fileUrl) => {
     return new Promise((resolve, reject) => {
+        if (!fileUrl) {
+            return reject('File URL is required');
+        }
+
         try {
-            // Simulating presigned URL generation for local files
+            // Resolve the absolute path of the file
             const absolutePath = path.resolve(fileUrl);
 
             // Check if the file exists
@@ -12,8 +16,7 @@ const generatePresignedUrl = (fileUrl) => {
                 if (err) {
                     reject('File does not exist');
                 } else {
-                    // For local development, we might just return the file path
-                    // In a production environment, you might use some kind of secure token or access control
+                    // Simulating a presigned URL by just returning the absolute path for local testing
                     resolve(absolutePath);
                 }
             });

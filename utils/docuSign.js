@@ -69,7 +69,7 @@ const payload = {
     sub: "fcec2b47-17b6-4708-be29-63d6a8696218", // user id or subject
     aud: "account-d.docusign.com",
     iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour expiration
+    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hour expiration
     scope: "signature impersonation"
 };
 

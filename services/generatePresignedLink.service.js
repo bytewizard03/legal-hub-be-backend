@@ -1,6 +1,10 @@
-const { generatePresignedUrl } = require('../utils/localFileUtils'); // Adjust the path if needed
+const { generatePresignedUrl } = require('../utils/localFileUtils');
 
 exports.getPresignedLink = async (fileUrl) => {
+    if (!fileUrl) {
+        throw new Error('File URL is required');
+    }
+
     try {
         const result = await generatePresignedUrl(fileUrl);
         return result;

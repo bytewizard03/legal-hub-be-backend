@@ -1,3 +1,4 @@
+// server/services/getEnvelops.service.js
 const { getAgreements, dynamoUpdateAgreement } = require('../utils/dynamoUtils');
 const { checkEnvelopeStatus } = require('../utils/docuSign');
 
@@ -6,9 +7,11 @@ exports.handleGetEnvelops = async ({ page, pageSize }) => {
     const startIndex = (page - 1) * pageSize;
     const items = await getAgreements();
 
+    // Sort and paginate items
     const sortedItems = items.sort((a, b) => new Date(b.dateOfAgreement) - new Date(a.dateOfAgreement));
     const paginatedItems = sortedItems.slice(startIndex, startIndex + pageSize);
 
+    // Calculate counts
     let totalAgreement = items.length;
     let expiringNextMonth = 0;
     let reviewalCount = 0;
@@ -22,6 +25,7 @@ exports.handleGetEnvelops = async ({ page, pageSize }) => {
       }
     });
 
+    // Update envelope status
     await updateEnvelopeStatus(paginatedItems);
 
     return {

@@ -151,7 +151,7 @@ async function dynamoUpdateAgreement(agreementId, data) {
 async function getAgreements() {
   try {
     const params = {
-      TableName: tableName,
+      TableName: 'Agreement',
     };
     const response = await dynamodb.scan(params).promise();
     return response.Items || [];

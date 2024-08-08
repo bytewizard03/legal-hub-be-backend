@@ -1,5 +1,5 @@
 const { localFileUpload, generateLocalFileUrl } = require('../utils/fileUtils');
-const { populateFile } = require('../utils/populateFile');
+const { populateFile,extractValidPeriod,calcExpiryDate } = require('../utils/populateFile');
 const dynamoose = require('dynamoose');
 //const validFileTypes = ['no_liability', 'institute_isa', 'digital_partner']; // Valid types
 
