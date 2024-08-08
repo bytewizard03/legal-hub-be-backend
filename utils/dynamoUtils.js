@@ -1,6 +1,8 @@
 const dynamoose = require('dynamoose');
 const AWS = require('aws-sdk');
 require('dotenv').config();
+
+// Configure DynamoDB
 dynamoose.aws.ddb.local('http://localhost:8000');
 
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
@@ -18,6 +20,10 @@ AWS.config.update({
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 const tableName = 'legal-docs'; // Ensure this matches the table in your local DynamoDB
 
+/**
+ * Inserts an agreement into DynamoDB.
+ * @param {Object} data - The agreement data to insert.
+ */
 async function dynamoInsertAgreement(data) {
   const params = {
     TableName: tableName,
@@ -33,6 +39,12 @@ async function dynamoInsertAgreement(data) {
   }
 }
 
+/**
+ * Retrieves agreements from DynamoDB with pagination.
+ * @param {number} startIndex - The start index for pagination.
+ * @param {number} pageSize - The number of items to retrieve.
+ * @returns {Promise<Array>} - A promise that resolves to the list of agreements.
+ */
 async function dynamoGetAgreement(startIndex, pageSize) {
   const params = {
     TableName: tableName,
@@ -49,9 +61,12 @@ async function dynamoGetAgreement(startIndex, pageSize) {
     console.error(`Error retrieving agreements: ${error}`);
     throw new Error('Failed to retrieve agreements');
   }
-
 }
 
+/**
+ * Retrieves the count of agreements in DynamoDB.
+ * @returns {Promise<number>} - A promise that resolves to the count of agreements.
+ */
 async function dynamoGetAgreementCount() {
   const params = {
     TableName: tableName,
@@ -64,9 +79,14 @@ async function dynamoGetAgreementCount() {
     console.error(`Error retrieving agreement count: ${error}`);
     throw new Error('Failed to retrieve agreement count');
   }
-
 }
 
+/**
+ * Scans DynamoDB with a filter expression.
+ * @param {string} attributeName - The attribute name to filter by.
+ * @param {string} value - The value to search for.
+ * @returns {Promise<Array>} - A promise that resolves to the list of filtered items.
+ */
 async function scanWithFilter(attributeName, value) {
   const params = {
     TableName: tableName,
@@ -85,6 +105,12 @@ async function scanWithFilter(attributeName, value) {
   }
 }
 
+/**
+ * Updates an agreement in DynamoDB.
+ * @param {string} agreementId - The ID of the agreement to update.
+ * @param {Object} data - The data to update.
+ * @returns {Promise<Object>} - A promise that resolves to the updated attributes.
+ */
 async function dynamoUpdateAgreement(agreementId, data) {
   const updateExpression = Object.keys(data)
     .map((key) => `#${key} = :${key}`)
@@ -116,7 +142,23 @@ async function dynamoUpdateAgreement(agreementId, data) {
     console.error(`Error updating agreement: ${error}`);
     throw new Error('Failed to update agreement');
   }
+}
 
+/**
+ * Retrieves agreements from DynamoDB.
+ * @returns {Promise<Array>} - A promise that resolves to the list of agreements.
+ */
+async function getAgreements() {
+  try {
+    const params = {
+      TableName: tableName,
+    };
+    const response = await dynamodb.scan(params).promise();
+    return response.Items || [];
+  } catch (error) {
+    console.error(`Error retrieving agreements: ${error}`);
+    throw new Error('Failed to retrieve agreements');
+  }
 }
 
 module.exports = {
@@ -125,4 +167,5 @@ module.exports = {
   dynamoGetAgreementCount,
   scanWithFilter,
   dynamoUpdateAgreement,
+  getAgreements, // Ensure this is included
 };

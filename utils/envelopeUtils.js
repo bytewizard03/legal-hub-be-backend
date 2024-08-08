@@ -1,6 +1,5 @@
 // utils/envelopeUtils.js
-
-const { checkEnvelopeStatus, dynamoUpdateAgreement } = require('./dynamoUtils'); // Import necessary functions from your utils
+const { getAgreements, dynamoUpdateAgreement,checkEnvelopeStatus } = require('../utils/dynamoUtils');
 
 // This function checks the status of envelopes and updates the database accordingly
 async function checkEnvelopes() {
