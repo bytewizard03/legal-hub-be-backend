@@ -37,42 +37,6 @@ app.use('/legal/api', fileUploadRoutes);
 // Use the send envelopes routes
 app.use('/legal/api', sendEnvelopsRoutes);
 
-// Route to handle sending envelopes
-// app.post('/legal/api/send-envelops', upload.single('file'), async (req, res) => {
-//     const isFile = !req.body.file_path;
-//     let filePath = isFile ? req.file.path : req.body.file_path;
-
-//     const name = req.body.name;
-//     const email = req.body.email;
-//     const subject = req.body.subject;
-
-//     const fileUrl = await generatePresignedUrl(filePath, 'test', `${req.body.id}_final.docx`);
-
-//     const validPeriod = parseInt(extractValidPeriod(filePath), 10);
-//     const expiryDate = calcExpiryDate(validPeriod);
-
-//     const filterVal = parseInt(req.body.id, 10);
-//     const response = await sendEmailDoc(getBase64(filePath, isFile), generateIds(), email, subject, name, generateIds(), process.env.ACCOUNT_ID);
-
-//     const data = {
-//         finalLink: fileUrl,
-//         email: email,
-//         subject: subject,
-//         validity: validPeriod,
-//         expiryDate: expiryDate,
-//         envelopeId: response.envelopeId,
-//         rId: filterVal
-//     };
-
-//     await dynamoUpdateAgreement(filterVal, data);
-
-//     if (!isFile) {
-//         fs.unlinkSync(filePath);
-//     }
-
-//     res.json({ message: 'Envelopes sent successfully', response });
-// });
-
 // Use the get envelopes routes
 app.use('/legal/api', getEnvelopsRoutes);
 

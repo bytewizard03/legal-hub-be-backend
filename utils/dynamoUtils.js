@@ -1,13 +1,7 @@
 const dynamoose = require('dynamoose');
 const AWS = require('aws-sdk');
-//const credentials = require('../envaws').credentials;
 require('dotenv').config();
 dynamoose.aws.ddb.local('http://localhost:8000');
-
-// const accessKeyId = credentials.accessKeyId;
-// const secretAccessKey = credentials.secretAccessKey;
-// const region = credentials.region;
-// const endpoint = credentials.endpoint;
 
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
