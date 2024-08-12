@@ -6,6 +6,7 @@ exports.handleGetEnvelops = async ({ page, pageSize }) => {
   try {
     const startIndex = (page - 1) * pageSize;
     const items = await getAgreements();
+    //console.log("Fetched items:", items); // Add this line
 
     // Sort and paginate items
     const sortedItems = items.sort((a, b) => new Date(b.dateOfAgreement) - new Date(a.dateOfAgreement));
@@ -20,6 +21,7 @@ exports.handleGetEnvelops = async ({ page, pageSize }) => {
       if (item.dayLeftToExpire && item.dayLeftToExpire <= 30) {
         expiringNextMonth++;
       }
+     // console.log("item envelop status are:" ,item.envelopeStatus)
       if (item.envelopeStatus === 'sent') {
         reviewalCount++;
       }
@@ -45,11 +47,15 @@ exports.handleGetEnvelops = async ({ page, pageSize }) => {
 const updateEnvelopeStatus = async (envelopes) => {
   for (const envelope of envelopes) {
     try {
+      console.log("envelope.rId is ", envelope.rId);
+      console.log("envelop status is ", envelope.envelopeStatus);
       if (envelope.rId && envelope.envelopeStatus === 'sent') {
-        const status = await checkEnvelopeStatus(process.env.ACCOUNT_ID, envelope.envelopeId);
+        const status = await checkEnvelopeStatus( envelope.envelopeId, process.env.ACCOUNT_ID);
+        console.log("account id is ", process.env.ACCOUNT_ID);
+        console.log("envelop id is ", envelope.envelopeId);
         await dynamoUpdateAgreement(envelope.rId, { envelopeStatus: status.status });
       } else if (envelope.rId) {
-        const status = await checkEnvelopeStatus(process.env.ACCOUNT_ID, envelope.envelopeId);
+        const status = await checkEnvelopeStatus(envelope.envelopeId , process.env.ACCOUNT_ID);
         await dynamoUpdateAgreement(envelope.rId, { envelopeStatus: status.status });
       }
     } catch (error) {

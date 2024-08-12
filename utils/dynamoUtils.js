@@ -151,9 +151,14 @@ async function dynamoUpdateAgreement(agreementId, data) {
 async function getAgreements() {
   try {
     const params = {
-      TableName: 'Agreement',
+      TableName: tableName,
     };
     const response = await dynamodb.scan(params).promise();
+    // if (response.Items) {
+    //   console.log("Agreements retrieved:", response.Items);
+    // } else {
+    //   console.log("No items found in the 'Agreement' table.");
+    // }
     return response.Items || [];
   } catch (error) {
     console.error(`Error retrieving agreements: ${error}`);

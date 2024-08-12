@@ -1,7 +1,6 @@
 const { localFileUpload, generateLocalFileUrl } = require('../utils/fileUtils');
 const { populateFile,extractValidPeriod,calcExpiryDate } = require('../utils/populateFile');
 const dynamoose = require('dynamoose');
-//const validFileTypes = ['no_liability', 'institute_isa', 'digital_partner']; // Valid types
 
 exports.handleFileUpload = async ({ file, image, docFileType, reviewerName, rId }) => {
   let docName;
@@ -11,10 +10,6 @@ exports.handleFileUpload = async ({ file, image, docFileType, reviewerName, rId 
     if (!file || !file.buffer) throw new Error('File buffer is missing');
     if (!image || !image.buffer) throw new Error('Image buffer is missing');
 
-    // Validate docFileType
-    // if (!validFileTypes.includes(docFileType)) {
-    //   throw new Error('Invalid document file type');
-    // }
     console.log('Received file type:', docFileType);
     console.log('Received reviewer name:', reviewerName);
     console.log('Recieved Id', rId);
@@ -54,7 +49,7 @@ exports.handleFileUpload = async ({ file, image, docFileType, reviewerName, rId 
 
     // Insert data into DynamoDB
     console.log('Inserting data into DynamoDB...');
-    const Agreement = dynamoose.model('Agreement', {
+    const Agreement = dynamoose.model('legal-docs', {
       id: Number,
       registered_entity_name: String,
       cin: String,
@@ -69,8 +64,8 @@ exports.handleFileUpload = async ({ file, image, docFileType, reviewerName, rId 
 
     await Agreement.create({
       id: rId,
-      registered_entity_name: data['[registered_entity_name]'],
-      cin: data['[CIN]'],
+      registered_entity_name:data.registered_entity_name,
+      cin:data.CIN,
       uploaded_file: uploadedFile.filePath,
       temp_file_path: tempFilePath,
       final_link: filledDocumentPath,
@@ -81,13 +76,15 @@ exports.handleFileUpload = async ({ file, image, docFileType, reviewerName, rId 
     });
 
     console.log(`Data successfully inserted for rId: ${rId}`);
+    //console.log('registered_entity_name:', data.registered_entity_name);
     return {
       filled_document_path: filledDocumentPath,
       id: String(rId),
       temp_file_path: tempFilePath,
-      name: data['[registered_entity_name]'],
+      userName: data.registered_entity_name,
       uploaded_file: uploadedFile.filePath,
       //image_url: image_url,
+      cin: data.CIN,
       image_url: uploadedImage.filePath, 
     };
   } catch (error) {

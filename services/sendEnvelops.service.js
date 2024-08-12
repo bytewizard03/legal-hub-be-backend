@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { localFileUpload, generateLocalFileUrl } = require('../utils/fileUtils');
 const { convertToBase64, sendEmailDoc, generateIds } = require('../utils/docuSign');
-const { calcExpiryDate, extractValidPeriod } = require('../utils/populateFile');
+const {populateFile, calcExpiryDate, extractValidPeriod } = require('../utils/populateFile');
 const dynamoose = require('dynamoose');
 
 exports.handleSendEnvelop = async ({ fileData, name, email, subject, id, isFile }) => {
@@ -57,7 +57,7 @@ exports.handleSendEnvelop = async ({ fileData, name, email, subject, id, isFile 
 
     // Update DynamoDB with envelope data
     console.log("envelope data parsed in dynamodb...........")
-    const Agreement = dynamoose.model('Agreement', new dynamoose.Schema({
+    const Agreement = dynamoose.model('legal-docs', new dynamoose.Schema({
       id: {
         type: Number,
         hashKey: true, // This is the primary key
@@ -69,6 +69,8 @@ exports.handleSendEnvelop = async ({ fileData, name, email, subject, id, isFile 
       expiryDate: String,
       envelopeId: String,
       rId: Number,
+      registered_entity_name: String,
+      cin: String,
     }));
 
     console.log("Data to be inserted:", data);

@@ -1,5 +1,6 @@
 // utils/envelopeUtils.js
-const { getAgreements, dynamoUpdateAgreement,checkEnvelopeStatus } = require('../utils/dynamoUtils');
+const { getAgreements, dynamoUpdateAgreement } = require('../utils/dynamoUtils');
+const { checkEnvelopeStatus } = require('../utils/docuSign');
 
 // This function checks the status of envelopes and updates the database accordingly
 async function checkEnvelopes() {
@@ -10,7 +11,7 @@ async function checkEnvelopes() {
 
         for (const envelope of envelopes) {
             if (envelope.rId) {
-                const status = await checkEnvelopeStatus(process.env.ACCOUNT_ID, envelope.envelopeId);
+                const status = await checkEnvelopeStatus(envelope.envelopeId, process.env.ACCOUNT_ID);
                 await dynamoUpdateAgreement(envelope.rId, { envelopeStatus: status.status });
             }
         }

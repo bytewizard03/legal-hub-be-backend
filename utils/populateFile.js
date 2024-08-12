@@ -8,6 +8,11 @@ const { localFileUpload } = require("../utils/fileUtils");
 
 async function populateFile(file, docFileType, image, rId) {
   // Define DOCX templates based on docFileType
+  console.log("Received parameters in populateFile:");
+  console.log("file:", file);
+  console.log("docFileType:", docFileType);
+  console.log("image:", image);
+  console.log("rId:", rId);
   let docFileName;
   switch (docFileType) {
     case "no_liability":

@@ -65,8 +65,8 @@ MQIDAQAB
 
 // Payload for the JWT
 const payload = {
-    iss: "a70056eb-ea16-49b1-887e-2afec9cf72f5",  // your integration key from DocuSign
-    sub: "fcec2b47-17b6-4708-be29-63d6a8696218", // user id or subject
+    iss: process.env.INTEGRATION_KEY, 
+    sub: process.env.USER_ID, 
     aud: "account-d.docusign.com",
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hour expiration
@@ -93,17 +93,22 @@ const convertToBase64 = (filePath) => {
     }
 };
 
-const checkEnvelopeStatus = async (envelopeId, accountId = process.env.accountId) => {
-    const token = await generateToken();
-    const url = `${base_url}/accounts/${accountId}/envelopes/${envelopeId}`;
-
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
-
-    const response = await axios.get(url, { headers });
-    return response.data;
+const checkEnvelopeStatus = async (envelopeId, accountId = process.env.ACCOUNT_ID) => {
+    try {
+        const token = await generateToken();
+        const url = `${base_url}/accounts/${accountId}/envelopes/${envelopeId}`;
+        //console.log("url is", url);
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        const response = await axios.get(url, { headers });
+        console.log("Envelope Status Response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching envelope status:", error.response ? error.response.data : error.message);
+        throw error;
+    }
 };
 
 const generateIds = () => {
