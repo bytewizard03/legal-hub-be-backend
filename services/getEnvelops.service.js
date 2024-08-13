@@ -1,11 +1,10 @@
-// server/services/getEnvelops.service.js
 const { getAgreements, dynamoUpdateAgreement } = require('../utils/dynamoUtils');
 const { checkEnvelopeStatus } = require('../utils/docuSign');
 
-exports.handleGetEnvelops = async ({ page, pageSize }) => {
+exports.handleGetEnvelops = async ({ page, pageSize, envelopeStatus,docName,searchTerm, dateOfAgreement, expiryDate }) => {
   try {
     const startIndex = (page - 1) * pageSize;
-    const items = await getAgreements();
+    const items = await getAgreements(envelopeStatus,docName,searchTerm, dateOfAgreement, expiryDate);
     //console.log("Fetched items:", items); // Add this line
 
     // Sort and paginate items

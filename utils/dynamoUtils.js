@@ -148,11 +148,57 @@ async function dynamoUpdateAgreement(agreementId, data) {
  * Retrieves agreements from DynamoDB.
  * @returns {Promise<Array>} - A promise that resolves to the list of agreements.
  */
-async function getAgreements() {
+async function getAgreements(envelopeStatus,docName,searchTerm, dateOfAgreement, expiryDate) {
   try {
-    const params = {
-      TableName: tableName,
-    };
+     // Build the FilterExpression and ExpressionAttributeNames/Values dynamically
+     let filterExpression = '';
+     const expressionAttributeNames = {};
+     const expressionAttributeValues = {};
+ 
+     if (envelopeStatus) {
+       filterExpression += '#envelopeStatus = :envelopeStatus';
+       expressionAttributeNames['#envelopeStatus'] = 'envelopeStatus';
+       expressionAttributeValues[':envelopeStatus'] = envelopeStatus;
+     }
+ 
+     if (docName) {
+       if (filterExpression) filterExpression += ' AND ';
+       filterExpression += '#docName = :docName';
+       expressionAttributeNames['#docName'] = 'doc_file_type';
+       expressionAttributeValues[':docName'] = docName;
+     }
+
+     if (searchTerm) {
+      if (filterExpression) filterExpression += ' AND ';
+      filterExpression += '(contains(#docFileName, :searchTerm) OR contains(#nameField, :searchTerm) OR contains(#cinField, :searchTerm) OR contains(#emailField, :searchTerm) OR contains(#UserNameField, :searchTerm))';
+      expressionAttributeNames['#docFileName'] = 'doc_name'; // Use field to search in
+      expressionAttributeNames['#nameField'] = 'reviewer_name';
+      expressionAttributeNames['#cinField'] = 'cin';
+      expressionAttributeNames['#emailField'] = 'email';
+      expressionAttributeNames['#UserNameField'] = 'registered_entity_name';
+      expressionAttributeValues[':searchTerm'] = searchTerm;
+    }
+
+    if (dateOfAgreement) {
+      if (filterExpression) filterExpression += ' AND ';
+      filterExpression += '#dateOfAgreement = :dateOfAgreement';
+      expressionAttributeNames['#dateOfAgreement'] = 'date_of_agreement';
+      expressionAttributeValues[':dateOfAgreement'] = dateOfAgreement;
+    }
+
+    if (expiryDate) {
+      if (filterExpression) filterExpression += ' AND ';
+      filterExpression += '#expiryDate = :expiryDate';
+      expressionAttributeNames['#expiryDate'] = 'expiryDate';
+      expressionAttributeValues[':expiryDate'] = expiryDate;
+    }
+ 
+     const params = {
+       TableName: tableName, 
+       FilterExpression: filterExpression || undefined,
+       ExpressionAttributeNames: Object.keys(expressionAttributeNames).length ? expressionAttributeNames : undefined,
+       ExpressionAttributeValues: Object.keys(expressionAttributeValues).length ? expressionAttributeValues : undefined,
+     };
     const response = await dynamodb.scan(params).promise();
     // if (response.Items) {
     //   console.log("Agreements retrieved:", response.Items);
