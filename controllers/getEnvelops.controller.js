@@ -9,7 +9,7 @@ exports.getEnvelops = async (req, res) => {
     const docName = req.query.doc_name || '';
     const searchTerm = req.query.search_term || '';
     const dateOfAgreement = req.query.date_of_agreement || '';
-    const expiryDate = req.query.expiry_date || '';
+    const expiryDate = req.query.expiryDate || '';
 
     const response = await getEnvelopsService.handleGetEnvelops({ page, pageSize, envelopeStatus, docName, searchTerm, dateOfAgreement, expiryDate });
 
