@@ -179,11 +179,18 @@ async function getAgreements(envelopeStatus,docName,searchTerm, dateOfAgreement,
       expressionAttributeValues[':searchTerm'] = searchTerm;
     }
 
+    // if (dateOfAgreement) {
+    //   if (filterExpression) filterExpression += ' AND ';
+    //   filterExpression += '#dateOfAgreement = :dateOfAgreement';
+    //   expressionAttributeNames['#dateOfAgreement'] = 'date_of_agreement';
+    //   expressionAttributeValues[':dateOfAgreement'] = dateOfAgreement;
+    // }
     if (dateOfAgreement) {
       if (filterExpression) filterExpression += ' AND ';
-      filterExpression += '#dateOfAgreement = :dateOfAgreement';
+      filterExpression += '#dateOfAgreement <= :dateOfAgreement';
       expressionAttributeNames['#dateOfAgreement'] = 'date_of_agreement';
-      expressionAttributeValues[':dateOfAgreement'] = dateOfAgreement;
+      // Truncate time part by taking only the date part if it's in the format 'YYYY-MM-DDTHH:MM:SS.sssZ'
+      expressionAttributeValues[':dateOfAgreement'] = dateOfAgreement.split('T')[0]; 
     }
 
     if (expiryDate) {
