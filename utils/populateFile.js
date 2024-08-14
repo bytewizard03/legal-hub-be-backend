@@ -58,12 +58,13 @@ async function populateFile(file, docFileType, image, rId) {
     Institute_Address: sheet.getCell("D12").value,
     CIN: sheet.getCell("D5").value,
     Institute_telephone_number: sheet.getCell("D14").value,
-    Institute_email_id: sheet.getCell("D13").value,
+    //Institute_email_id: sheet.getCell("D13").value,
+    Institute_email_id: email,
     contact_person_name: sheet.getCell("D19").value,
     contact_person_designation: sheet.getCell("D20").value,
     Name_from_mail_id: extractNameFromEmail(email),
-    //kyc_authorized_signatory: sheet.getCell("23").value,
-    //product_snapshot:
+    kyc_authorized_signatory: sheet.getCell("D23").value || 'null',
+    product_snapshot: 'null'  // image path
     // Add more fields as needed
   };
   console.log(data);
