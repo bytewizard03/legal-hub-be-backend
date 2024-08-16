@@ -40,102 +40,11 @@ app.use('/legal/api', sendEnvelopsRoutes);
 // Use the get envelopes routes
 app.use('/legal/api', getEnvelopsRoutes);
 
-// Route to get envelopes with pagination
-// app.get('/legal/api/get-envelops', async (req, res) => {
-//     const page = parseInt(req.query.page || 1, 10);
-//     const pageSize = parseInt(req.query.page_size || 10, 10);
-
-//     const startIndex = (page - 1) * pageSize;
-//     const items = await getAgreements();
-
-//     const sortedItems = items.sort((a, b) => new Date(b.dateOfAgreement) - new Date(a.dateOfAgreement));
-//     const paginatedItems = sortedItems.slice(startIndex, startIndex + pageSize);
-
-//     let totalAgreement = items.length;
-//     let expiringNextMonth = 0;
-//     let reviewalCount = 0;
-
-//     items.forEach(item => {
-//         if (item.dayLeftToExpire && item.dayLeftToExpire <= 30) {
-//             expiringNextMonth++;
-//         }
-//         if (item.envelopeStatus === 'sent') {
-//             reviewalCount++;
-//         }
-//     });
-
-//     updateEnvelopeStatus(paginatedItems);
-
-//     res.json({
-//         envelops: paginatedItems,
-//         counts: {
-//             totalAgreement: totalAgreement,
-//             expiringNextMonth: expiringNextMonth,
-//             reviewalCount: reviewalCount
-//         }
-//     });
-// });
-
-// const updateEnvelopeStatus = async (envelopes) => {
-//     for (const envelope of envelopes) {
-//         try {
-//             if (envelope.rId && envelope.envelopeStatus === 'sent') {
-//                 const status = await checkEnvelopeStatus(process.env.ACCOUNT_ID, envelope.envelopeId);
-//                 await dynamoUpdateAgreement(envelope.rId, { envelopeStatus: status.status });
-//             } else if (envelope.rId) {
-//                 const status = await checkEnvelopeStatus(process.env.ACCOUNT_ID, envelope.envelopeId);
-//                 await dynamoUpdateAgreement(envelope.rId, { envelopeStatus: status.status });
-//             }
-//         } catch (error) {
-//             console.error(`Unexpected error updating envelope status: ${error}`);
-//         }
-//     }
-// };
-
-
 // Use the generate presigned link route
 app.use('/legal/api', generatePresignedLinkRoutes);
 
-// // Route to generate presigned link
-// app.post('/legal/api/generate-presigned-link', async (req, res) => {
-//     const fileUrl = req.body.file_url;
-//     const result = await generatePresignedUrl(fileUrl);
-
-//     if (result) {
-//         res.json({ presigned_link: result });
-//     } else {
-//         res.status(400).json({ message: 'Failed to generate presigned link' });
-//     }
-// });
-
-app.use('/legal/api', notificationRoutes);
-
 // Route to notify
-// app.get('/legal/api/notify', async (req, res) => {
-//     const result = await checkEnvelopes();
-//     if (result) {
-//         res.json({ message: result });
-//     } else {
-//         res.status(400).json({ message: 'Failed to send notification' });
-//     }
-// });
-
-// Frontend routes
-// app.get('/', (req, res) => {
-//     res.redirect('/legal/ui/');
-// });
-
-// app.get('/legal/ui/', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'public/index.html'));
-// });
-
-// app.get('/legal/ui/form/index.html', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'public/form/index.html'));
-// });
-
-// app.get('/legal/ui/form/final_page.html', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'public/form/final_page.html'));
-// });
+app.use('/legal/api', notificationRoutes);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

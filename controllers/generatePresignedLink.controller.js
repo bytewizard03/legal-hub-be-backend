@@ -3,6 +3,7 @@ const generatePresignedLinkService = require('../services/generatePresignedLink.
 exports.generatePresignedLink = async (req, res) => {
     try {
         const fileUrl = req.body.file_url;
+        //console.log(fileUrl);
         if (!fileUrl) {
             return res.status(400).json({ message: 'File URL is required' });
         }
