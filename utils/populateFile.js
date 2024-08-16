@@ -5,6 +5,9 @@ const fs = require("fs");
 const path = require("path");
 const { addMonths, format } = require("date-fns");
 const { localFileUpload } = require("../utils/fileUtils");
+//const ImageModule = require("docxtemplater-image-module");
+const ImageModule = require("docxtemplater-image-module-free");
+//var ImageModule = require('open-docxtemplater-image-module');
 
 async function populateFile(file, docFileType, image, rId) {
   // Define DOCX templates based on docFileType
@@ -34,7 +37,41 @@ async function populateFile(file, docFileType, image, rId) {
   // Ensure the template file exists
   if (!fs.existsSync(docPath)) {
     throw new Error(`Template file not found at path: ${docPath}`);
+  }  
+
+  // Optionally save the image locally if needed
+  let image_url = null;
+  if (image && image.buffer) {
+    try {
+      const uploadedImage = await localFileUpload(image.buffer, "images", `${rId}_uploaded_image.png`);
+      image_url = uploadedImage.url;
+    } catch (uploadError) {
+      console.error("Error uploading image:", uploadError);
+      throw new Error("Error uploading image");
+    }
   }
+
+  // Image options for ImageModule
+  const imageOptions = {
+    centered: false,
+    fileType: "docx",
+    getImage(tagValue, tagName) {
+      if (tagName === "product_snapshot") {
+        // Resolve the path to the logo image
+        const logoFilePath = path.resolve(__dirname, "../uploads", `${rId}_uploaded_image.png`);
+        return fs.existsSync(logoFilePath) ? fs.readFileSync(logoFilePath) : null;
+      }
+      return null;
+    },
+    getSize(img, tagValue, tagName) {
+      if (tagName === "product_snapshot") {
+        return [100, 100];
+      }
+      return [150, 150];
+    }
+  };
+
+  const imageModule = new ImageModule(imageOptions);
 
   // Use the buffer directly for the Excel file
   const workbook = new ExcelJS.Workbook();
@@ -64,8 +101,10 @@ async function populateFile(file, docFileType, image, rId) {
     contact_person_designation: sheet.getCell("D20").value,
     Name_from_mail_id: extractNameFromEmail(email),
     kyc_authorized_signatory: sheet.getCell("D23").value || 'null',
-    product_snapshot: 'null'  // image path
+    //product_snapshot: 'null',
+    //product_snapshot: image && image.buffer ? image.buffer : null // image path
     // Add more fields as needed
+    product_snapshot: `${rId}_uploaded_image.png`
   };
   console.log(data);
 
@@ -78,10 +117,24 @@ async function populateFile(file, docFileType, image, rId) {
   // Unzip the content of the file
   const zip = new PizZip(content);
 
+
+
+//   const imageOptions = {
+//     getImage(tagValue, tagName, meta) {
+//         console.log({ tagValue, tagName, meta });
+//         return fs.readFileSync(tagValue);
+//     },
+//     getSize(img) {
+//         // it also is possible to return a size in centimeters, like this : return [ "2cm", "3cm" ];
+//         return [150, 150];
+//     },
+// };
+
   // This will parse the template and replace placeholders
   const doc = new Docxtemplater(zip, {
     paragraphLoop: true,
     linebreaks: true,
+    modules: [imageModule],
   });
 
   // Render the document with the data
@@ -106,17 +159,6 @@ async function populateFile(file, docFileType, image, rId) {
   );
   fs.writeFileSync(filledDocumentPath, buf);
 
-  // Optionally save the image locally if needed
-  let image_url = null;
-  if (image && image.buffer) {
-    try {
-      const uploadedImage = await localFileUpload(image.buffer, "images", `${rId}_uploaded_image.png`);
-      image_url = uploadedImage.url;
-    } catch (uploadError) {
-      console.error("Error uploading image:", uploadError);
-      throw new Error("Error uploading image");
-    }
-  }
 
   return {
     filledDocumentPath, // Path to the saved document
