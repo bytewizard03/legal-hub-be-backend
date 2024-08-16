@@ -7,7 +7,7 @@ const { addMonths, format } = require("date-fns");
 const { localFileUpload } = require("../utils/fileUtils");
 //const ImageModule = require("docxtemplater-image-module");
 const ImageModule = require("docxtemplater-image-module-free");
-//var ImageModule = require('open-docxtemplater-image-module');
+//const ImageModule = require('open-docxtemplater-image-module');
 
 async function populateFile(file, docFileType, image, rId) {
   // Define DOCX templates based on docFileType
@@ -58,20 +58,23 @@ async function populateFile(file, docFileType, image, rId) {
     getImage(tagValue, tagName) {
       if (tagName === "product_snapshot") {
         // Resolve the path to the logo image
-        const logoFilePath = path.resolve(__dirname, "../uploads", `${rId}_uploaded_image.png`);
+        const logoFilePath = path.resolve(__dirname, "./../uploads/images", `${rId}_uploaded_image.png`);
+        console.log(logoFilePath);
         return fs.existsSync(logoFilePath) ? fs.readFileSync(logoFilePath) : null;
       }
       return null;
     },
     getSize(img, tagValue, tagName) {
       if (tagName === "product_snapshot") {
-        return [100, 100];
+        return [300, 300];
       }
       return [150, 150];
     }
   };
 
   const imageModule = new ImageModule(imageOptions);
+
+  
 
   // Use the buffer directly for the Excel file
   const workbook = new ExcelJS.Workbook();
@@ -91,20 +94,20 @@ async function populateFile(file, docFileType, image, rId) {
     day: format(today, "dd"),
     month: format(today, "MMMM"),
     year: format(today, "yyyy"),
-    registered_entity_name: sheet.getCell("D3").value,
-    Institute_Address: sheet.getCell("D12").value,
-    CIN: sheet.getCell("D5").value,
-    Institute_telephone_number: sheet.getCell("D14").value,
+    registered_entity_name: sheet.getCell("D3").value || 'null',
+    Institute_Address: sheet.getCell("D12").value || 'null',
+    CIN: sheet.getCell("D5").value || 'null',
+    Institute_telephone_number: sheet.getCell("D14").value || 'null',
     //Institute_email_id: sheet.getCell("D13").value,
-    Institute_email_id: email,
-    contact_person_name: sheet.getCell("D19").value,
-    contact_person_designation: sheet.getCell("D20").value,
-    Name_from_mail_id: extractNameFromEmail(email),
+    Institute_email_id: email || 'null',
+    contact_person_name: sheet.getCell("D19").value || 'null',
+    contact_person_designation: sheet.getCell("D20").value || 'null',
+    Name_from_mail_id: extractNameFromEmail(email) || 'null',
     kyc_authorized_signatory: sheet.getCell("D23").value || 'null',
-    //product_snapshot: 'null',
     //product_snapshot: image && image.buffer ? image.buffer : null // image path
+    //product_snapshot: `${rId}_uploaded_image.png`,
+    product_snapshot: path.resolve(__dirname, "./../uploads/images", `${rId}_uploaded_image.png`)
     // Add more fields as needed
-    product_snapshot: `${rId}_uploaded_image.png`
   };
   console.log(data);
 
@@ -144,6 +147,7 @@ async function populateFile(file, docFileType, image, rId) {
     console.error("Error rendering document:", error);
     throw new Error("Error rendering document with provided data");
   }
+  
 
   // Get the zip document and generate it as a nodebuffer
   const buf = doc.getZip().generate({
