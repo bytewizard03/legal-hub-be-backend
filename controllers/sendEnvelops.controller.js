@@ -28,7 +28,8 @@ exports.sendEnvelop = async (req, res) => {
     // Ensure validPeriod is being properly extracted
     const validPeriod = parseInt(extractValidPeriod(filePath), 10);
     if (validPeriod === null || isNaN(validPeriod) || validPeriod <= 0) {
-      throw new Error('Validity period not found or invalid in the document');
+      validPeriod = 3;
+      //throw new Error('Validity period not found or invalid in the document');
     }
     console.log('Extracted Valid Period:', validPeriod);
 

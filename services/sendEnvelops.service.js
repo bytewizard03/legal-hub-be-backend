@@ -34,7 +34,8 @@ exports.handleSendEnvelop = async ({ fileData, name, email, subject, id, isFile 
     // Extract validity period and calculate expiry date
     const validPeriod = parseInt(extractValidPeriod(filePath), 10);
     if (isNaN(validPeriod) || validPeriod <= 0) {
-      throw new Error('Invalid validity period');
+      validPeriod = 3;
+     // throw new Error('Invalid validity period');
   }
     const expiryDate = calcExpiryDate(validPeriod);
 

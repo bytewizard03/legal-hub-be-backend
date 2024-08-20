@@ -222,12 +222,13 @@ function extractValidPeriod(docPath) {
   if (match) {
     const period = parseInt(match[1], 10);
     if (isNaN(period) || period <= 0) {
-      throw new Error("Extracted validity period is not a valid number");
+      period = 3;
+      //throw new Error("Extracted validity period is not a valid number");
     }
     return period;
   }
-
-  throw new Error("Validity period not found in the document");
+   return 3;
+  //throw new Error("Validity period not found in the document");
 }
 
 function calcExpiryDate(validPeriod) {
