@@ -11,13 +11,17 @@ exports.handleGetEnvelops = async ({ page, pageSize, envelopeStatus,docName,sear
     const sortedItems = items.sort((a, b) => new Date(b.dateOfAgreement) - new Date(a.dateOfAgreement));
     const paginatedItems = sortedItems.slice(startIndex, startIndex + pageSize);
 
+    const now = new Date();
+
     // Calculate counts
     let totalAgreement = items.length;
     let expiringNextMonth = 0;
     let reviewalCount = 0;
-
+    
     items.forEach(item => {
-      if (item.dayLeftToExpire && item.dayLeftToExpire <= 30) {
+      const expiryDate = new Date(item.expiryDate);  // Make sure `expiryDate` is a valid date
+      item.dayLeftToExpire = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+      if (item.dayLeftToExpire && item.dayLeftToExpire <= 31) {
         expiringNextMonth++;
       }
      // console.log("item envelop status are:" ,item.envelopeStatus)

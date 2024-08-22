@@ -202,7 +202,8 @@ function extractValidPeriod(docPath) {
     }
   }
 
-  const pattern = /\b(\d+)\s+months\b/i;
+  //const pattern = /\b(\d+)\s+months\b/i;
+  //const pattern = /\bvalid\s+for\s+a\s+period\s+of\s+(\d+)\s+months\b/i;
   const content = docBuffer.toString(); // Read content as string
   // Use PizZip to unzip the DOCX content
   const zip = new PizZip(docBuffer);
@@ -215,10 +216,22 @@ function extractValidPeriod(docPath) {
     throw new Error("document.xml not found in the DOCX archive");
   }
 
+   // Clean the XML content to remove tags
+   function cleanXmlContent(docXml) {
+    return docXml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  const cleanedContent = cleanXmlContent(docXml);
+  //console.log("Cleaned Content:", cleanedContent.slice(0, 1000));
+
+  // Apply the regex to the cleaned content
+  const pattern = /\bvalid\s*for\s*a\s*period\s*of\s*(\d+)\s*months\b/i;
+  const match = pattern.exec(cleanedContent);
+
  // console.log("Document Content:", content); // Log content for debugging
 
  // const match = pattern.exec(content);
- const match  = pattern.exec(docXml);
+// const match  = pattern.exec(docXml);
   if (match) {
     const period = parseInt(match[1], 10);
     if (isNaN(period) || period <= 0) {

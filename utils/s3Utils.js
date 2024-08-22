@@ -13,7 +13,7 @@ const credentials = {
 AWS.config.update(credentials);
 
 const s3 = new AWS.S3();
-const bucketName = 'eduvanz-interns';
+const bucketName = '';
 
 function awsFileUpload(file, folder, fileName = null, isFile = true) {
   return new Promise((resolve, reject) => {
